@@ -64,7 +64,7 @@ for($count = 0; $count < count($varianten); $count++) {
           ];
 
         $status_data = array(
-        "status" => "Es sind " . $neuehaie[$i]['number'] . " neue Blåhajar (" . $varianten[$count] . ") in " . getName($neuehaie[$i]['store'], $names) . " eingezogen.",
+        "status" => "Es sind " . $neuehaie[$i]['number'] . " neue Blåhajar (" . $varianten[$count] . ") in #" . getName($neuehaie[$i]['store'], $names) . " eingezogen.",
         "language" => "deu",
         "visibility" => "public"
         );
