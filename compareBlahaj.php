@@ -63,8 +63,15 @@ for($count = 0; $count < count($varianten); $count++) {
             'Authorization: Bearer ' . $mastodonsecret
           ];
 
+        if ($neuehaie[$i]['number'] == 1) {
+            $praedikat = "ist";
+            $hajwort = "neues Blåhaj";
+        } else {
+            $praedikat = "sind";
+            $hajwort = "neue Blåhajar";
+        }
         $status_data = array(
-        "status" => "Es sind " . $neuehaie[$i]['number'] . " neue Blåhajar (" . $varianten[$count] . ") in #" . getName($neuehaie[$i]['store'], $names) . " eingezogen.",
+        "status" => "Es " . $praedikat . " " . $neuehaie[$i]['number'] . " " . $hajwort . " (" . $varianten[$count] . ") in #" . getName($neuehaie[$i]['store'], $names) . " eingezogen.",
         "language" => "deu",
         "visibility" => "public"
         );
