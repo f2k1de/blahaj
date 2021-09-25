@@ -1,13 +1,15 @@
 <?php
-date_default_timezone_set('Europe/Berlin');
+require "config.php";
 
-$mastodonsecret = 'ENTER MASTODON SECRET HERE';
+date_default_timezone_set($timezone);
 
 $jetzt = date("Y-m-d") . "/" . date("H") . ".xml";
 $davor = date("Y-m-d", strtotime("-1 hour")) . "/" . date("H", strtotime("-1 hour")) . ".xml";
 
 $varianten[] = "klein";
 $varianten[] = "gross";
+
+$store_names = json_decode(file_get_contents("stores.json"), true);
 
 for($count = 0; $count < count($varianten); $count++) {
 
@@ -16,26 +18,27 @@ for($count = 0; $count < count($varianten); $count++) {
         if(file_get_contents("blahaj/" . $varianten[$count] . "/" . $jetzt) != "") {
 
 
-            $xml = simplexml_load_string(file_get_contents("blahaj/" . $varianten[$count] . "/" . $jetzt));
-            $json = json_encode($xml);
-            $array = json_decode($json,TRUE);
+            $json = file_get_contents($data_folder . "/" . $varianten[$count] . "/" . $jetzt);
+            $array = json_decode($json, TRUE)['data']; // Extract the data tag
 
-
-            for($i = 0; $i < count($array['availability']['localStore']); $i++) {
-                $jetztarray[$i]['store'] = $array['availability']['localStore'][$i]['@attributes']['buCode'];
-                $jetztarray[$i]['stock'] = $array['availability']['localStore'][$i]['stock']['availableStock'];
+            for($i = 0; $i < count($array); $i++) {
+                if(array_key_exists('availableStocks', $array[$i])) {
+                    $jetztarray[$i]['store'] = $array[$i]['classUnitKey']['classUnitCode'];
+                    $jetztarray[$i]['stock'] = $array[$i]['availableStocks'][0]['quantity'];
+                }
             }
 
             if(file_exists("blahaj/" . $varianten[$count] . "/" . $davor)) {
                 if(file_get_contents("blahaj/" . $varianten[$count] . "/" . $davor) != "") {
 
-                    $xml = simplexml_load_string(file_get_contents("blahaj/" . $varianten[$count] . "/" . $davor));
-                    $json = json_encode($xml);
-                    $array = json_decode($json,TRUE);
-
-                    for($i = 0; $i < count($array['availability']['localStore']); $i++) {
-                        $davorarray[$i]['store'] = $array['availability']['localStore'][$i]['@attributes']['buCode'];
-                        $davorarray[$i]['stock'] = $array['availability']['localStore'][$i]['stock']['availableStock'];
+                    $json = file_get_contents($data_folder . "/" . $varianten[$count] . "/" . $davor);
+                    $array = json_decode($json, TRUE)['data']; // Extract the data tag
+        
+                    for($i = 0; $i < count($array); $i++) {
+                        if(array_key_exists('availableStocks', $array[$i])) {
+                            $jetztarray[$i]['store'] = $array[$i]['classUnitKey']['classUnitCode'];
+                            $jetztarray[$i]['stock'] = $array[$i]['availableStocks'][0]['quantity'];
+                        }
                     }
                 }
             }
@@ -55,8 +58,6 @@ for($count = 0; $count < count($varianten); $count++) {
         }
     }
 
-    $names = json_decode(file_get_contents("names.json"), true);
-
 
     for($i = 0; $i < count($neuehaie); $i++) {
         $headers = [
@@ -71,7 +72,7 @@ for($count = 0; $count < count($varianten); $count++) {
             $hajwort = "neue Blåhajar";
         }
         $status_data = array(
-        "status" => "Es " . $praedikat . " " . $neuehaie[$i]['number'] . " " . $hajwort . " (" . $varianten[$count] . ") in #" . getName($neuehaie[$i]['store'], $names) . " eingezogen.",
+        "status" => "Es " . $praedikat . " " . $neuehaie[$i]['number'] . " " . $hajwort . " (" . $varianten[$count] . ") in #" . get_name($neuehaie[$i]['store'], $store_names) . " eingezogen.",
         "language" => "deu",
         "visibility" => "public"
         );
@@ -91,11 +92,10 @@ for($count = 0; $count < count($varianten); $count++) {
     }
 }
 
-function getName($nr, $names) {
-    for($i = 0; $i < count($names); $i++) {
-        if($names[$i]['buCode'] == $nr) {
-            return $names[$i]['name'];
+function get_name($nr, $store_names) {
+    for($i = 0; $i < count($store_names); $i++) {
+        if($store_names[$i]['id'] == $nr) {
+            return $store_names[$i]['name'];
         }
     }
 }
-
